@@ -1,7 +1,6 @@
 import json
-import uuid
-import tkinter as tk
-from tkinter import messagebox, simpledialog
+import streamlit as st
+from uuid import uuid4
 
 class Student:
     def __init__(self, name, student_id, subjects=None):
@@ -101,77 +100,65 @@ class GradeManager:
         return None
 
 
-def main_gui():
+def main():
+    st.title("Student Report Card Manager")
     gm = GradeManager()
     gm.load_from_file()
 
-    def add_student():
-        name = simpledialog.askstring("Input", "Enter student name:")
-        student_id = simpledialog.askstring("Input", "Enter a unique student ID:")
-        if not name or not student_id:
-            return
+    menu = ["Add Student", "Update Scores", "View Report", "Delete Student", "Save Data", "Load Data"]
+    choice = st.sidebar.selectbox("Menu", menu)
+
+    if choice == "Add Student":
+        st.subheader("Add New Student")
+        name = st.text_input("Student Name")
+        student_id = st.text_input("Student ID")
         subjects = {}
-        while True:
-            subject = simpledialog.askstring("Input", "Enter subject (or type 'done'):")
-            if subject == 'done':
-                break
+        subject = st.text_input("Subject")
+        score = st.number_input("Score", min_value=0.0, max_value=100.0)
+        if st.button("Add Subject"):
+            subjects[subject] = score
+            st.success(f"Added {subject} with score {score}")
+        if st.button("Add Student"):
             try:
-                score = float(simpledialog.askstring("Input", f"Enter score for {subject}:"))
-                subjects[subject] = score
-            except:
-                messagebox.showerror("Error", "Invalid score")
-        try:
-            sid = gm.add_student(name, student_id, subjects)
-            messagebox.showinfo("Success", f"Student added with ID: {sid}")
-        except ValueError as e:
-            messagebox.showerror("Error", str(e))
+                gm.add_student(name, student_id, subjects)
+                st.success("Student added successfully")
+            except ValueError as e:
+                st.error(str(e))
 
-    def update_score():
-        sid = simpledialog.askstring("Input", "Enter student ID:")
-        subject = simpledialog.askstring("Input", "Enter subject to update:")
-        try:
-            score = float(simpledialog.askstring("Input", "Enter new score:"))
+    elif choice == "Update Scores":
+        st.subheader("Update Scores")
+        sid = st.text_input("Student ID")
+        subject = st.text_input("Subject to Update")
+        score = st.number_input("New Score", min_value=0.0, max_value=100.0)
+        if st.button("Update Score"):
             if gm.update_scores(sid, subject, score):
-                messagebox.showinfo("Success", "Score updated.")
+                st.success("Score updated successfully")
             else:
-                messagebox.showerror("Error", "Student not found.")
-        except:
-            messagebox.showerror("Error", "Invalid input.")
+                st.error("Student not found")
 
-    def view_report():
-        sid = simpledialog.askstring("Input", "Enter student ID:")
-        report = gm.view_report(sid)
-        messagebox.showinfo("Report", report)
+    elif choice == "View Report":
+        st.subheader("View Student Report")
+        sid = st.text_input("Student ID")
+        if st.button("Get Report"):
+            report = gm.view_report(sid)
+            st.text(report)
 
-    def delete_student():
-        sid = simpledialog.askstring("Input", "Enter student ID:")
-        if gm.delete_student(sid):
-            messagebox.showinfo("Success", "Student deleted.")
-        else:
-            messagebox.showerror("Error", "Student not found.")
+    elif choice == "Delete Student":
+        st.subheader("Delete Student")
+        sid = st.text_input("Student ID")
+        if st.button("Delete"):
+            if gm.delete_student(sid):
+                st.success("Student deleted successfully")
+            else:
+                st.error("Student not found")
 
-    def save_data():
+    elif choice == "Save Data":
         gm.save_to_file()
-        messagebox.showinfo("Saved", "Data saved to grades.json")
+        st.success("Data saved to grades.json")
 
-    def load_data():
+    elif choice == "Load Data":
         gm.load_from_file()
-        messagebox.showinfo("Loaded", "Data loaded from grades.json")
+        st.success("Data loaded from grades.json")
 
-    root = tk.Tk()
-    root.title("Student Report Card Manager")
-    root.geometry("400x300")
-
-    tk.Button(root, text="Add Student", width=25, command=add_student).pack(pady=5)
-    tk.Button(root, text="Update Scores", width=25, command=update_score).pack(pady=5)
-    tk.Button(root, text="View Report", width=25, command=view_report).pack(pady=5)
-    tk.Button(root, text="Delete Student", width=25, command=delete_student).pack(pady=5)
-    tk.Button(root, text="Save Data", width=25, command=save_data).pack(pady=5)
-    tk.Button(root, text="Load Data", width=25, command=load_data).pack(pady=5)
-    tk.Button(root, text="Exit", width=25, command=root.quit).pack(pady=5)
-
-    root.mainloop()
-
-
-if __name__ == "__main__":
-    main_gui()
+if __name__ == '__main__':
+    main()
