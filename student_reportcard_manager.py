@@ -102,8 +102,11 @@ class GradeManager:
 
 def main():
     st.title("Student Report Card Manager")
-    gm = GradeManager()
-    gm.load_from_file()
+    if "gm" not in st.session_state:
+        st.session_state.gm = GradeManager()
+        st.session_state.gm.load_from_file()
+
+    gm = st.session_state.gm
 
     menu = ["Add Student", "Update Scores", "View Report", "Delete Student", "Save Data", "Load Data"]
     choice = st.sidebar.selectbox("Menu", menu)
