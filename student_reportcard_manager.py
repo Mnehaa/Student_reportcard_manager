@@ -109,21 +109,34 @@ def main():
     choice = st.sidebar.selectbox("Menu", menu)
 
     if choice == "Add Student":
+        if "subjects" not in st.session_state:
+            st.session_state.subjects = {}
+
         st.subheader("Add New Student")
         name = st.text_input("Student Name")
         student_id = st.text_input("Student ID")
-        subjects = {}
+
         subject = st.text_input("Subject")
         score = st.number_input("Score", min_value=0.0, max_value=100.0)
+
         if st.button("Add Subject"):
-            subjects[subject] = score
-            st.success(f"Added {subject} with score {score}")
+            if subject:
+                st.session_state.subjects[subject] = score
+                st.success(f"Added {subject} with score {score}")
+            else:
+                st.error("Subject cannot be empty")
+
         if st.button("Add Student"):
             try:
-                gm.add_student(name, student_id, subjects)
+                gm.add_student(name, student_id, st.session_state.subjects)
                 st.success("Student added successfully")
+                st.session_state.subjects = {}
             except ValueError as e:
                 st.error(str(e))
+
+        if st.session_state.subjects:
+            st.write("Subjects added so far:")
+            st.write(st.session_state.subjects)
 
     elif choice == "Update Scores":
         st.subheader("Update Scores")
